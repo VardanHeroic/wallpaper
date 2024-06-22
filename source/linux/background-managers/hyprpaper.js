@@ -7,14 +7,15 @@ export async function isAvailable() {
 
 async function initialize() {
 	return new Promise((resolve, reject) => {
-		const hyprpaper = childProcess.spawn('hyprpaper');
+		const hyprpaper = childProcess.spawn('script', ['-c', 'hyprpaper']);
 
 		hyprpaper.stdout.on('data', data => {
-			if (!data.toString().includes('Cannot launch multiple instances of Hyprpaper at once!')) {
-				reject(new Error(`Failed to start hyprpaper: ${data.toString()}`));
+			if (data.toString().includes('[ERR]') || data.toString().includes('error')) {
+				reject(data.toString());
+			} else {
+				resolve();
 			}
 		});
-		resolve();
 	});
 }
 
@@ -30,6 +31,7 @@ export async function get() {
 
 export async function set(imagePath) {
 	await initialize();
+	console.log(imagePath);
 	const {stdout: listloaded} = await execFile('hyprctl', ['hyprpaper', 'listloaded']);
 	if (!listloaded.includes(imagePath)) {
 		await execFile('hyprctl', ['hyprpaper', 'preload', imagePath]);
