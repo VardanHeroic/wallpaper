@@ -6,12 +6,11 @@ export async function isAvailable() {
 }
 
 async function initialize() {
-	return new Promise((resolve, reject) => {
-		const hyprpaper = childProcess.spawn('script', ['-c', 'hyprpaper']);
-
+	return new Promise(resolve => {
+		const hyprpaper = childProcess.spawn('script', ['-q', '-c', 'hyprpaper', '/dev/null']);
 		hyprpaper.stdout.on('data', data => {
 			if (data.toString().includes('[ERR]') || data.toString().includes('error')) {
-				reject(data.toString());
+				throw new Error(data.toString());
 			} else {
 				resolve();
 			}
@@ -22,8 +21,8 @@ async function initialize() {
 export async function get() {
 	await initialize();
 	const {stdout: query} = await execFile('hyprctl', ['hyprpaper', 'listactive']);
-	if (query === 'no wallpapers active') {
-		throw new Error('No wallpaper active');
+	if (query.includes('no wallpapers active')) {
+		return;
 	}
 
 	return query.split(' ')[2];
@@ -31,7 +30,6 @@ export async function get() {
 
 export async function set(imagePath) {
 	await initialize();
-	console.log(imagePath);
 	const {stdout: listloaded} = await execFile('hyprctl', ['hyprpaper', 'listloaded']);
 	if (!listloaded.includes(imagePath)) {
 		await execFile('hyprctl', ['hyprpaper', 'preload', imagePath]);
