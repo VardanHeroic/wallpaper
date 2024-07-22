@@ -7,22 +7,7 @@ export async function isAvailable() {
 
 async function initialize() {
 	return new Promise((resolve, reject) => {
-		const hyprpaper = childProcess.spawn('script', ['--return','--quiet', '--command', 'hyprpaper', '/dev/null']);
-		// const hyprpaper = childProcess.spawn('hyprpaper')
-		// hyprpaper.stderr.on('data', error => {
-		// 	console.log(error)
-		// 	resolve()
-		// })
-		// resolve()
-		// hyprpaper.on('close', code => {
-		// 	console.log(code);
-		// 	resolve()
-		// })
-		// hyprpapeR.on('error', err => {
-		// 	console.log(err);
-		// 	resolve()
-		// })
-		// resolve()
+		const hyprpaper = childProcess.spawn('script', ['--return', '--quiet', '--command', 'hyprpaper', '/dev/null']);
 		hyprpaper.stdout.on('data', data => {
 			if (data.toString().includes('[ERR]') || data.toString().includes('error')) {
 				reject(new Error(data.toString()));
@@ -56,8 +41,8 @@ export async function get() {
 
 export async function set(imagePath) {
 	await initialize();
-	const {stdout: jsonMonitors} = await execFile('hyprctl', ['monitors', '-j'])
-	const monitors = JSON.parse(jsonMonitors)
+	const {stdout: jsonMonitors} = await execFile('hyprctl', ['monitors', '-j']);
+	const monitors = JSON.parse(jsonMonitors);
 	const {stdout: listloaded} = await execFile('hyprctl', ['hyprpaper', 'listloaded']);
 	if (!listloaded.includes(imagePath)) {
 		await execFile('hyprctl', ['hyprpaper', 'preload', imagePath]);
